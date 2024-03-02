@@ -26,13 +26,20 @@ def get_temperature(url_teplota):
         except ValueError:
             temperatures.append(x)
 
-    temp_4hr_avg = []
-
+    
     i = 0
-    for x in temperatures:
-    temp_avg_0_4 =
+    temp_4hr_avg = 0
+
+    for z in temperatures:
+        if z=='DN' and i <=4:
+            i += 1
+            continue
+        else:
+            temp_4hr_avg += z
+            i += 1
 
     print(temperatures)
+    print(temp_4hr_avg, i)
     
     
 
