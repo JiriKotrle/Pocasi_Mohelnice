@@ -1,11 +1,21 @@
 from requests import get
 from bs4 import BeautifulSoup
+from datetime import datetime, timedelta
 import pandas as pd
 import os
 
 os.system('cls')
 
-url_teplota = "http://portal.envitech.eu:81/ovzdusi-lostice/station/1/emission/7?from=2024-03-02&interval=day&displayCharts=true&displayTables=true&updateControls="
+def get_url():
+    aktualni_datum = datetime.now()
+    vcerejsi_datum = aktualni_datum - timedelta(days=1)
+    datum = vcerejsi_datum.strftime('%Y-%m-%d')
+
+    url1 = "http://portal.envitech.eu:81/ovzdusi-lostice/station/1/emission/7?from="
+    url2 = "&interval=day&displayCharts=true&displayTables=true&updateControls="
+
+    url_teplota = url1 + datum + url2
+    return url_teplota
 
 def get_temperature(url_teplota):
     response = get(url_teplota)
@@ -25,22 +35,31 @@ def get_temperature(url_teplota):
             temperatures.append(y)
         except ValueError:
             temperatures.append(x)
-
     
+    return temperatures
+    
+def get_averages(temperatures):
     i = 0
-    temp_4hr_avg = 0
+    time_int = [4,8,12,16,20,24]
+    prumery = []
 
-    for z in temperatures:
-        if z=='DN' and i <=4:
-            i += 1
-            continue
-        else:
-            temp_4hr_avg += z
-            i += 1
+    for ii in time_int:
+        dn = 0
+        suma = sum(x for x in temperatures[i:ii] if x != "DN")
+        dn = sum(1 for x in temperatures[i:ii] if x == "DN")
+        prumer = suma/ (4-dn)
+        prumery.append(prumer)
+        i = i + 4
 
-    print(temperatures)
-    print(temp_4hr_avg, i)
+    print(prumery)
     
     
+    
 
-get_temperature(url_teplota)
+def get_result():
+    url_teplota = get_url()
+    get_temperature(url_teplota)
+    temperatures = get_temperature(url_teplota)
+    get_averages(temperatures)
+
+get_result()
