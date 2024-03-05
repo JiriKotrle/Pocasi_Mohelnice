@@ -59,8 +59,15 @@ url_prec = "https://hydro.chmi.cz/hppsoldv/hpps_act_rain.php?day_offset=1&fpob=O
 def get_prec(url_prec):
     response = get(url_prec)
     soup =  BeautifulSoup(response.text, features="html.parser")
-    sel = soup.select('#harData > div > table > tbody > tr:nth-child(5) > td:nth-child(2)')
-    print(sel)
+    rows = soup.find_all('tr')
+    
+   
+    for row in rows:
+        if 'Dubicko' in row.text:  # Kontrola, zda řetězec obsahuje text "Dubicko"
+            data = [cell.text for cell in row.find_all('td')]
+            print(data)
+    
+    
 
 get_prec(url_prec)
 
