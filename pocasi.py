@@ -60,16 +60,46 @@ def get_prec(url_prec):
     response = get(url_prec)
     soup =  BeautifulSoup(response.text, features="html.parser")
     rows = soup.find_all('tr')
-    
    
     for row in rows:
         if 'Dubicko' in row.text:  # Kontrola, zda řetězec obsahuje text "Dubicko"
-            data = [cell.text for cell in row.find_all('td')]
-            print(data)
-    
-    
+            all_data = [cell.text for cell in row.find_all('td')]
+           
+    dataset_1 = list(all_data[2:9])
+    dataset_2 = list(all_data[10:27])
+    precipitation_str = dataset_1+dataset_2
+    precipitation = [float(x) for x in precipitation_str]
+    return precipitation
 
-get_prec(url_prec)
+def get_averages_prec(precipitation):
+    i = 0
+    time_int = [4,8,12,16,20,24]
+    prumery = []
+
+    for ii in time_int:
+        suma = sum(x for x in precipitation[i:ii])
+        print(suma)
+        prumer = round((suma/4), 2)
+        prumery.append(prumer)
+        i = i + 4
+
+    print(prumery)
+
+# precipitation = get_prec(url_prec)
+# precipitation = [1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8]
+# get_averages_prec(precipitation)
+
+def get_datum(url_prec):
+    response = get(url_prec)
+    soup =  BeautifulSoup(response.text, features="html.parser")
+    rows = soup.find_all('th')
+
+    for row in rows:
+        if "Datum" in row:
+            print(row.strip())  # Print the element containing "Datum"
+
+            
+get_datum(url_prec)
 
 # def get_result():
 #     url_teplota = get_url_temp()
