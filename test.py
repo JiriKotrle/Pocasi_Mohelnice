@@ -1,17 +1,33 @@
-seznam = [9.31, 9.35, 9.46, 9.44, 9.31, 8.62, 8.03, 7.7, 8.59, 9.48, 9.78, 10.39, 10.9, 11.64, 11.97, 12.11, 11.79, 11.29, 10.75, 10.08, 9.88, 9.92, 9.68, 'DN']
+import pandas as pd
+import os
+
+os.system('cls')
+
+avg_temp = [21.38, 0.36, 21.94, 62.86, 6.97, 5.73]
+avg_prec = [0.00, 0.01, 0.00, 0.05, 0.0, 0.0]
+day = ['10.03.2024']
 
 
-i = 0
-time_int = [4,8,12,16,20,24]
 
-prumery = []
+def update_pocasi_csv(day, avg_temp, avg_prec):
+    # Vytvoření nového řádku s novými daty
+    all_data = [day + avg_temp + avg_prec]
 
-for ii in time_int:
-    dn = 0
-    suma = sum(x for x in seznam[i:ii] if x != "DN")
-    dn = sum(1 for x in seznam[i:ii] if x == "DN")
-    prumer = suma/ (4-dn)
-    prumery.append(prumer)
-    i = i + 4
+    # Načtení existujícího souboru CSV
+    df = pd.read_csv("pocasi.csv", sep='\t', encoding='cp1250',decimal=',')
+    print(df)
 
-print(prumery)
+    new_df = pd.DataFrame(all_data, columns=df.columns)
+    print(new_df)
+
+# Spojení původního DataFrame a nového DataFrame
+    df = pd.concat([df, new_df], ignore_index=True)
+
+# Uložení aktualizovaného DataFrame zpět do souboru CSV
+    df.to_csv("pocasi.csv", index=False, sep='\t', encoding='cp1250', decimal=',')
+
+# Aktualizace souboru CSV
+update_pocasi_csv(day, avg_temp, avg_prec)
+
+
+
