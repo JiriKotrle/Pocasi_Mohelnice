@@ -105,16 +105,40 @@ def get_datum(url_prec):
 
 def create_pocasi_csv(day, avg_temp, avg_prec): 
     columns = [
-        "Datum", "temp (0-4)", "temp (5-8)", "temp (9-12)", "temp(13-16)", "temp(17-20)", "temp(21-24)",
+        "datum", "temp (0-4)", "temp (5-8)", "temp (9-12)", "temp(13-16)", "temp(17-20)", "temp(21-24)",
         "prec(0-4)", "prec(5-8)", "prec(9-12)", "prec(13-16)", "prec(17-20)", "prec(21-24)"
         ]
     
-    all_data = day.extend(avg_temp)
-    #all_data = all_data.extend(avg_prec)
+    all_data =[day + avg_temp + avg_prec]
+    
     print(all_data)
-    df = pd.DataFrame(data, columns = columns)
+    df = pd.DataFrame(all_data, columns = columns)
+    print(df)
+    df.to_csv("pocasi.csv", index=False, encoding='cp1250', sep='\t', decimal=",")
+
+
+
+def update_pocasi_csv(day, avg_temp, avg_prec):
+    # Vytvoření nového řádku s novými daty
+    all_data = [day + avg_temp + avg_prec]
+
+    # Načtení existujícího souboru CSV
+    df = pd.read_csv("pocasi.csv", sep='\t', encoding='cp1250',decimal=',')
     print(df)
 
+    new_df = pd.DataFrame(all_data, columns=df.columns)
+    print(new_df)
+
+    # Spojení původního DataFrame a nového DataFrame
+    df = pd.concat([df, new_df], ignore_index=True)
+
+    # Uložení aktualizovaného DataFrame zpět do souboru CSV
+    df.to_csv("pocasi.csv", index=False, sep='\t', encoding='cp1250', decimal=',')
+
+
+# do try přijde update .csv pokud zahlásí chybu, že neexistuje, tak se půjde do větve except, kde se csv vytvoří.
+# try:
+# except:
 
 def get_result():
     url_teplota = get_url_temp()
@@ -124,7 +148,13 @@ def get_result():
     get_prec(url_prec)
     precipitation = get_prec(url_prec)
     avg_prec = get_averages_prec(precipitation)
-    datum = get_datum(url_prec)
-    create_pocasi_csv(datum, avg_temp, avg_prec)
+    day = get_datum(url_prec)
+    
+    try:
+        update_pocasi_csv(day, avg_temp, avg_prec)
+    except FileNotFoundError:
+        create_pocasi_csv(day, avg_temp, avg_prec)
+    
+
 
 get_result()
