@@ -32,8 +32,13 @@ def update_pocasi_csv(day, avg_temp, avg_prec):
 # update_pocasi_csv(day, avg_temp, avg_prec)
 
 def plot_chart():
-    x_values = ["0-4","5-8", "9-12", "13-16", "17-20", "21-24"]
     df = pd.read_csv("pocasi.csv", sep='\t', encoding='cp1250',decimal=',')
+
+    start_day = df.iloc[0,0]
+    print(start_day)
+
+    x_values = pd.date_range(start_day, periods=18, freq='4h')
+
     y_values_temp = []
     # projede řádky
     for i in range(len(df)):
@@ -41,10 +46,10 @@ def plot_chart():
         for ii in range(6):
             temp = df.iloc[i,ii+1]
             y_values_temp.append(temp)
-    print(y_values_temp)
-    x_values_extended = np.tile(x_values, 3)
 
-    plt.plot(x_values_extended,y_values_temp)
+    plt.plot(x_values, y_values_temp, marker='o')  # nebo plt.scatter(x, y, marker='o')
+    plt.xlabel('X')
+    plt.ylabel('Y')
     plt.show()
 plot_chart()
 
