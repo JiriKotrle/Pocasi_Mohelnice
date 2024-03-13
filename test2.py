@@ -6,7 +6,6 @@ from matplotlib.widgets import Slider  # Import Slider
 
 os.system('cls')
 
-
 def plot_chart():
     df = pd.read_csv("pocasi.csv", sep='\t', encoding='cp1250',decimal=',')
 
@@ -19,7 +18,7 @@ def plot_chart():
             y_values_temp.append(temp)
     print(y_values_temp)
 
-    temp_columns_name = ['temp (0-4)', 'temp (5-8)', 'temp (9-12)', 'temp(13-16)', 'temp(17-20)', 'temp(21-24)']
+    temp_columns_name = ['temp(0-4)', 'temp(5-8)', 'temp(9-12)', 'temp(13-16)', 'temp(17-20)', 'temp(21-24)']
     prec_columns_name = ['prec(0-4)', 'prec(5-8)', 'prec(9-12)', 'prec(13-16)', 'prec(17-20)', 'prec(21-24)']
 
     list_datums = df['datum'].tolist()
@@ -30,12 +29,14 @@ def plot_chart():
 
     for i in list_datums:
         for ii in temp_columns_name:
-            x_value = " ".join([f'({str(index)})',ii,i])
+            x_value = " ".join([i, ii[5:9], f'({str(index)})'])
             x_values.append(x_value)
             index += 1
     print(x_values)
 
+
     fig, ax = plt.subplots()
+
     plt.plot(x_values, y_values_temp, marker='x')
     
     # Nastavení úhlu natočení názvů na ose x a velikosti písma
@@ -44,17 +45,17 @@ def plot_chart():
     # Posunutí okrajů grafu nahoru
     plt.subplots_adjust(bottom=0.3)
 
-# Popisky os
+    # Popisky os
     plt.xlabel('Osa X')
     plt.ylabel('Osa Y')
 
-# Název grafu
-    plt.title('Opakované hodnoty na ose X')
+    # Název grafu
+    plt.title('Graf teplot (°C)')
 
     # Vytvoření slideru
     axcolor = 'lightgoldenrodyellow'
-    ax_slider = plt.axes([0.1, 0.1, 0.65, 0.03], facecolor=axcolor)
-    slider = Slider(ax_slider, 'Index', 1, len(x_values), valinit=1)
+    ax_slider = plt.axes([0.2, 0.0, 0.65, 0.03], facecolor=axcolor)
+    slider = Slider(ax_slider, 'Index', 10, len(x_values), valinit=1)
 
     def update(val):
         index = int(slider.val)
@@ -66,3 +67,7 @@ def plot_chart():
     plt.show()
 
 plot_chart()
+
+# upravit názvy osy x
+# srážky brát jako sumu za 4 hod
+# teplotu jako aktuální hodnotu v čase 4,8,12,16,20,24

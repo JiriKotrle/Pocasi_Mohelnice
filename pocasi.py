@@ -77,19 +77,18 @@ def get_prec(url_prec):
     precipitation = [float(x) for x in precipitation_str]
     return precipitation
 
-def get_averages_prec(precipitation):
+def get_sums_prec(precipitation):
     i = 0
     time_int = [4,8,12,16,20,24]
-    avg_prec = []
+    sum_prec = []
 
     for ii in time_int:
-        suma = sum(x for x in precipitation[i:ii])
-        prumer = round((suma/4), 2)
-        avg_prec.append(prumer)
+        suma = round(sum(x for x in precipitation[i:ii]),2)
+        sum_prec.append(suma)
         i = i + 4
 
-    print(avg_prec)
-    return(avg_prec)
+    print(sum_prec)
+    return(sum_prec)
 
 
 def get_datum(url_prec):
@@ -151,7 +150,7 @@ def plot_chart():
             y_values_temp.append(temp)
     print(y_values_temp)
 
-    temp_columns_name = ['temp (0-4)', 'temp (5-8)', 'temp (9-12)', 'temp(13-16)', 'temp(17-20)', 'temp(21-24)']
+    temp_columns_name = ['temp(0-4)', 'temp(5-8)', 'temp(9-12)', 'temp(13-16)', 'temp(17-20)', 'temp(21-24)']
     prec_columns_name = ['prec(0-4)', 'prec(5-8)', 'prec(9-12)', 'prec(13-16)', 'prec(17-20)', 'prec(21-24)']
 
     list_datums = df['datum'].tolist()
@@ -183,12 +182,12 @@ def plot_chart():
     plt.ylabel('Osa Y')
 
     # Název grafu
-    plt.title('Opakované hodnoty na ose X')
+    plt.title('Graf teplot (°C)')
 
     # Vytvoření slideru
     axcolor = 'lightgoldenrodyellow'
-    ax_slider = plt.axes([0.1, 0.1, 0.65, 0.03], facecolor=axcolor)
-    slider = Slider(ax_slider, 'Index', 1, len(x_values), valinit=1)
+    ax_slider = plt.axes([0.2, 0.0, 0.65, 0.03], facecolor=axcolor)
+    slider = Slider(ax_slider, 'Index', 10, len(x_values), valinit=1)
 
     def update(val):
         index = int(slider.val)
@@ -206,7 +205,7 @@ def get_result():
     avg_temp = get_averages(temperatures)
     get_prec(url_prec)
     precipitation = get_prec(url_prec)
-    avg_prec = get_averages_prec(precipitation)
+    avg_prec = get_sums_prec(precipitation)
     day = get_datum(url_prec)
     
     try:
