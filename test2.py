@@ -9,6 +9,7 @@ os.system('cls')
 def plot_chart():
     df = pd.read_csv("pocasi.csv", sep='\t', encoding='cp1250',decimal=',')
 
+    # získání teplot z celého csv:
     y_values_temp = []
     # projede řádky
     for i in range(len(df)):
@@ -18,39 +19,53 @@ def plot_chart():
             y_values_temp.append(temp)
     print(y_values_temp)
 
-    temp_columns_name = ['temp(0-4)', 'temp(5-8)', 'temp(9-12)', 'temp(13-16)', 'temp(17-20)', 'temp(21-24)']
-    prec_columns_name = ['prec(0-4)', 'prec(5-8)', 'prec(9-12)', 'prec(13-16)', 'prec(17-20)', 'prec(21-24)']
+    # získání srážek z celého csv:
+    y_values_prec = []
+    for i in range(len(df)):
+        # projede sloupce:
+        for ii in range(6,12):
+            prec = df.iloc[i,ii+1]
+            y_values_prec.append(prec)
+    print(y_values_prec)
 
+    # vytvoření osy X:
+    columns_name = ['4 hrs', '8 hrs', '12 hrs', '16 hrs', '20 hrs', '24 hrs']
     list_datums = df['datum'].tolist()
-    print(list_datums)
-
     x_values = []
     index = 1
-
     for i in list_datums:
-        for ii in temp_columns_name:
-            x_value = " ".join([i, ii[5:9], f'({str(index)})'])
+        for ii in columns_name:
+            x_value = "_".join([i,ii, f'({str(index)})'])
             x_values.append(x_value)
             index += 1
     print(x_values)
 
 
+    # Vykreslení grafu
     fig, ax = plt.subplots()
+    ax2 = ax.twinx()
 
-    plt.plot(x_values, y_values_temp, marker='x')
-    
+    # Graf pro teploty
+    ax.plot(x_values, y_values_temp, marker='x', color='r', label='Teploty (°C)')
+    ax.set_ylabel('Teploty (°C)', color='r')
+    ax.tick_params(axis='y', labelcolor='r')
+
+    # Graf pro srážky jako sloupcový graf
+    ax2.bar(x_values, y_values_prec, color='b', alpha=0.5, label='Srážky (mm)')
+    ax2.set_ylabel('Srážky (mm)', color='b')
+
     # Nastavení úhlu natočení názvů na ose x a velikosti písma
-    plt.xticks(rotation=90, fontsize=6)
+    ax.set_xticklabels(x_values, rotation=90, fontsize=6)
+
 
     # Posunutí okrajů grafu nahoru
-    plt.subplots_adjust(bottom=0.3)
+    plt.subplots_adjust(bottom=0.2)
 
     # Popisky os
-    plt.xlabel('Osa X')
-    plt.ylabel('Osa Y')
+    ax.set_xlabel('Osa X')
 
     # Název grafu
-    plt.title('Graf teplot (°C)')
+    plt.title('Graf teplot a srážek')
 
     # Vytvoření slideru
     axcolor = 'lightgoldenrodyellow'
@@ -60,9 +75,15 @@ def plot_chart():
     def update(val):
         index = int(slider.val)
         ax.set_xlim(index - 10, index + 10)  # Updatuje rozsah zobrazených hodnot
+        ax2.set_xlim(index - 10, index + 10)
         fig.canvas.draw_idle()  # Překreslí graf po změně
 
     slider.on_changed(update)
+
+    # Zobrazení legendy
+    ax.legend(loc='upper left')
+    ax2.legend(loc='upper right')
+
     # Zobrazení grafu
     plt.show()
 

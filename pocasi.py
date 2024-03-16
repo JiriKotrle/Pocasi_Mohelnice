@@ -18,8 +18,8 @@ def get_url_temp():
     url2 = "&interval=day&displayCharts=true&displayTables=true&updateControls="
 
     url_teplota = url1 + datum + url2
-    print(url_teplota)
     return url_teplota
+
 
 def get_temperature(url_teplota):
     response = get(url_teplota)
@@ -39,25 +39,25 @@ def get_temperature(url_teplota):
             temperatures.append(y)
         except ValueError:
             temperatures.append(x)
-    
     return temperatures
+
+
+def get_temp_hr(temperatures):
     
-def get_averages(temperatures):
-    i = 0
     time_int = [4,8,12,16,20,24]
-    avg_temp = []
+    temp_hrs = []
 
-    for ii in time_int:
-        dn = 0
-        suma = sum(x for x in temperatures[i:ii] if x != "DN")
-        dn = sum(1 for x in temperatures[i:ii] if x == "DN")
-        prumer = round((suma/(4-dn)), 2)
-        avg_temp.append(prumer)
-        i = i + 4
-
-    print(avg_temp)
-    return(avg_temp)
-
+    for i in time_int:
+        if temperatures[i-1] != "DN":
+            temp = temperatures[i-1]
+        elif temperatures[i-2] != "DN":
+            temp = temperatures[i-2]
+        elif temperatures[i-3] != "DN":
+            temp = temperatures[i-3]
+        else:
+            temp = temperatures[i-4]
+        temp_hrs.append(temp)
+    return(temp_hrs)
 
 
 url_prec = "https://hydro.chmi.cz/hppsoldv/hpps_act_rain.php?day_offset=1&fpob=OS&fdp=&fkraj=&ordrstr=11&startpage=2"
@@ -86,8 +86,6 @@ def get_sums_prec(precipitation):
         suma = round(sum(x for x in precipitation[i:ii]),2)
         sum_prec.append(suma)
         i = i + 4
-
-    print(sum_prec)
     return(sum_prec)
 
 
@@ -101,14 +99,14 @@ def get_datum(url_prec):
             whole_datum = row.get_text()  # Print the element containing "Datum"
             datum = whole_datum.replace("Datum", "").strip()
             day.append(datum)
-            print(day)
+           
             return(day)
    
 
 def create_pocasi_csv(day, avg_temp, avg_prec): 
     columns = [
-        "datum", "temp (0-4)", "temp (5-8)", "temp (9-12)", "temp(13-16)", "temp(17-20)", "temp(21-24)",
-        "prec(0-4)", "prec(5-8)", "prec(9-12)", "prec(13-16)", "prec(17-20)", "prec(21-24)"
+        "datum", "temp_4 hrs", "temp_8 hrs", "temp_12 hrs", "temp_16 hrs", "temp_20 hrs", "temp_24 hrs",
+        "prec_4 hrs", "prec_8 hrs", "prec_12 hrs", "prec_16 hrs", "prec_20 hrs", "prec_24 hrs"
         ]
     
     all_data =[day + avg_temp + avg_prec]
@@ -117,7 +115,6 @@ def create_pocasi_csv(day, avg_temp, avg_prec):
     df = pd.DataFrame(all_data, columns = columns)
     print(df)
     df.to_csv("pocasi.csv", index=False, encoding='cp1250', sep='\t', decimal=",")
-
 
 
 def update_pocasi_csv(day, avg_temp, avg_prec):
@@ -141,6 +138,7 @@ def update_pocasi_csv(day, avg_temp, avg_prec):
 def plot_chart():
     df = pd.read_csv("pocasi.csv", sep='\t', encoding='cp1250',decimal=',')
 
+    # získání teplot z celého csv:
     y_values_temp = []
     # projede řádky
     for i in range(len(df)):
@@ -150,39 +148,49 @@ def plot_chart():
             y_values_temp.append(temp)
     print(y_values_temp)
 
-    temp_columns_name = ['temp(0-4)', 'temp(5-8)', 'temp(9-12)', 'temp(13-16)', 'temp(17-20)', 'temp(21-24)']
-    prec_columns_name = ['prec(0-4)', 'prec(5-8)', 'prec(9-12)', 'prec(13-16)', 'prec(17-20)', 'prec(21-24)']
+    # získání srážek z celého csv:
+    y_values_prec = []
+    for i in range(len(df)):
+        # projede sloupce:
+        for ii in range(6,12):
+            prec = df.iloc[i,ii+1]
+            y_values_prec.append(prec)
 
+    # vytvoření osy X:
+    columns_name = ['4 hrs', '8 hrs', '12 hrs', '16 hrs', '20 hrs', '24 hrs']
     list_datums = df['datum'].tolist()
-    print(list_datums)
-
     x_values = []
     index = 1
-
     for i in list_datums:
-        for ii in temp_columns_name:
-            x_value = " ".join([f'({str(index)})',ii,i])
+        for ii in columns_name:
+            x_value = "_".join([i,ii, f'({str(index)})'])
             x_values.append(x_value)
             index += 1
-    print(x_values)
 
-
+    # Vykreslení grafu
     fig, ax = plt.subplots()
+    ax2 = ax.twinx()
 
-    plt.plot(x_values, y_values_temp, marker='x')
-    
+    # Graf pro teploty
+    ax.plot(x_values, y_values_temp, marker='x', color='r', label='Teploty (°C)')
+    ax.set_ylabel('Teploty (°C)', color='r')
+    ax.tick_params(axis='y', labelcolor='r')
+
+    # Graf pro srážky jako sloupcový graf
+    ax2.bar(x_values, y_values_prec, color='b', alpha=0.5, label='Srážky (mm)')
+    ax2.set_ylabel('Srážky (mm)', color='b')
+
     # Nastavení úhlu natočení názvů na ose x a velikosti písma
-    plt.xticks(rotation=90, fontsize=6)
+    ax.set_xticklabels(x_values, rotation=90, fontsize=6)
 
     # Posunutí okrajů grafu nahoru
-    plt.subplots_adjust(bottom=0.3)
+    plt.subplots_adjust(bottom=0.2)
 
     # Popisky os
-    plt.xlabel('Osa X')
-    plt.ylabel('Osa Y')
+    ax.set_xlabel('Osa X')
 
     # Název grafu
-    plt.title('Graf teplot (°C)')
+    plt.title('Graf teplot a srážek')
 
     # Vytvoření slideru
     axcolor = 'lightgoldenrodyellow'
@@ -192,9 +200,15 @@ def plot_chart():
     def update(val):
         index = int(slider.val)
         ax.set_xlim(index - 10, index + 10)  # Updatuje rozsah zobrazených hodnot
+        ax2.set_xlim(index - 10, index + 10)
         fig.canvas.draw_idle()  # Překreslí graf po změně
 
     slider.on_changed(update)
+
+    # Zobrazení legendy
+    ax.legend(loc='upper left')
+    ax2.legend(loc='upper right')
+
     # Zobrazení grafu
     plt.show()
 
@@ -202,7 +216,7 @@ def get_result():
     url_teplota = get_url_temp()
     get_temperature(url_teplota)
     temperatures = get_temperature(url_teplota)
-    avg_temp = get_averages(temperatures)
+    avg_temp = get_temp_hr(temperatures)
     get_prec(url_prec)
     precipitation = get_prec(url_prec)
     avg_prec = get_sums_prec(precipitation)
@@ -216,3 +230,7 @@ def get_result():
 
 
 get_result()
+
+# přidat omezení že nesmí být více řádků se stejným datumem
+# auto spuštění
+# natáhnutí dat ode dne posledního spuštění ke dni aktuálního spuštění (např. když se týden nespustí tak si dotáhne chybějící data)
