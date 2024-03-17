@@ -103,13 +103,13 @@ def get_datum(url_prec):
             return(day)
    
 
-def create_pocasi_csv(day, avg_temp, avg_prec): 
+def create_pocasi_csv(day, temp_hrs, sum_prec): 
     columns = [
         "datum", "temp_4 hrs", "temp_8 hrs", "temp_12 hrs", "temp_16 hrs", "temp_20 hrs", "temp_24 hrs",
         "prec_4 hrs", "prec_8 hrs", "prec_12 hrs", "prec_16 hrs", "prec_20 hrs", "prec_24 hrs"
         ]
     
-    all_data =[day + avg_temp + avg_prec]
+    all_data =[day + temp_hrs + sum_prec]
     
     print(all_data)
     df = pd.DataFrame(all_data, columns = columns)
@@ -117,22 +117,27 @@ def create_pocasi_csv(day, avg_temp, avg_prec):
     df.to_csv("pocasi.csv", index=False, encoding='cp1250', sep='\t', decimal=",")
 
 
-def update_pocasi_csv(day, avg_temp, avg_prec):
+def update_pocasi_csv(day, temp_hrs, sum_prec):
     # Vytvoření nového řádku s novými daty
-    all_data = [day + avg_temp + avg_prec]
+    all_data = [day + temp_hrs + sum_prec]
 
     # Načtení existujícího souboru CSV
     df = pd.read_csv("pocasi.csv", sep='\t', encoding='cp1250',decimal=',')
-    print(df)
 
-    new_df = pd.DataFrame(all_data, columns=df.columns)
-    print(new_df)
+    # poslední datum v .csv
+    last_date = df['datum'].iloc[-1]
+    if last_date in day:
+        return
 
-    # Spojení původního DataFrame a nového DataFrame
-    df = pd.concat([df, new_df], ignore_index=True)
+    else: 
+        new_df = pd.DataFrame(all_data, columns=df.columns)
+        print(new_df)
 
-    # Uložení aktualizovaného DataFrame zpět do souboru CSV
-    df.to_csv("pocasi.csv", index=False, sep='\t', encoding='cp1250', decimal=',')
+        # Spojení původního DataFrame a nového DataFrame
+        df = pd.concat([df, new_df], ignore_index=True)
+
+        # Uložení aktualizovaného DataFrame zpět do souboru CSV
+        df.to_csv("pocasi.csv", index=False, sep='\t', encoding='cp1250', decimal=',')
 
 
 def plot_chart():
@@ -177,8 +182,10 @@ def plot_chart():
     ax.tick_params(axis='y', labelcolor='r')
 
     # Graf pro srážky jako sloupcový graf
-    ax2.bar(x_values, y_values_prec, color='b', alpha=0.5, label='Srážky (mm)')
-    ax2.set_ylabel('Srážky (mm)', color='b')
+    ax2.bar(x_values, y_values_prec, color='b', alpha=0.5, label='Suma srážek za poslední 4 hod (mm)')
+    ax2.set_ylabel('Suma srážek za poslední 4 hod (mm)', color='b')
+
+    ax.set_xticks(x_values)
 
     # Nastavení úhlu natočení názvů na ose x a velikosti písma
     ax.set_xticklabels(x_values, rotation=90, fontsize=6)
@@ -187,7 +194,7 @@ def plot_chart():
     plt.subplots_adjust(bottom=0.2)
 
     # Popisky os
-    ax.set_xlabel('Osa X')
+    ax.set_xlabel('Datum_čas_index')
 
     # Název grafu
     plt.title('Graf teplot a srážek')
@@ -216,21 +223,22 @@ def get_result():
     url_teplota = get_url_temp()
     get_temperature(url_teplota)
     temperatures = get_temperature(url_teplota)
-    avg_temp = get_temp_hr(temperatures)
+    temp_hrs = get_temp_hr(temperatures)
     get_prec(url_prec)
     precipitation = get_prec(url_prec)
-    avg_prec = get_sums_prec(precipitation)
+    sum_prec = get_sums_prec(precipitation)
     day = get_datum(url_prec)
     
     try:
-        update_pocasi_csv(day, avg_temp, avg_prec)
+        update_pocasi_csv(day, temp_hrs, sum_prec)
     except FileNotFoundError:
-        create_pocasi_csv(day, avg_temp, avg_prec)
+        create_pocasi_csv(day, temp_hrs, sum_prec)
     plot_chart()
 
 
 get_result()
 
-# přidat omezení že nesmí být více řádků se stejným datumem
+
 # auto spuštění
 # natáhnutí dat ode dne posledního spuštění ke dni aktuálního spuštění (např. když se týden nespustí tak si dotáhne chybějící data)
+# spojit do jedné funkce get_url, kde se pro každé z url vytvoří seznam s hodnotami 7 dní zpět. poté for fce která seznami projde a předá konkrétní url pro získání srážek a teploty

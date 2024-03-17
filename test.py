@@ -1,37 +1,28 @@
-import matplotlib.pyplot as plt
+from requests import get
+from bs4 import BeautifulSoup
+from datetime import datetime, timedelta
+import pandas as pd
+import os
+from matplotlib import pyplot as plt
+from matplotlib.widgets import Slider  # Import Slider
 
-# Teploty a srážky
-y_values_temp = [20, 22, 25, 24, 23, 21]  # Příklad teplot
-y_values_prec = [0, 2, 5, 3, 1, 0]          # Příklad srážek
 
-# Hodiny
-x_values = [4, 8, 12, 16, 20, 24]
+os.system('cls')
 
-# Vykreslení grafu
-fig, ax1 = plt.subplots()
+def get_url_temp():
+    aktualni_datum = datetime.now()
+    vcerejsi_datum = aktualni_datum - timedelta(days=1)
+    datum = vcerejsi_datum.strftime('%Y-%m-%d')
 
-# Graf pro teploty
-color = 'tab:red'
-ax1.set_xlabel('Hodiny')
-ax1.set_ylabel('Teploty (°C)', color=color)
-ax1.plot(x_values, y_values_temp, color=color)
-ax1.tick_params(axis='y', labelcolor=color)
+    url1 = "http://portal.envitech.eu:81/ovzdusi-lostice/station/1/emission/7?from="
+    url2 = "&interval=day&displayCharts=true&displayTables=true&updateControls="
 
-# Vytvoření druhé osy x pro srážky
-ax2 = ax1.twinx()  
+    url_teplota = url1 + datum + url2
+    print(url_teplota)
+    return url_teplota
 
-# Graf pro srážky jako sloupcový graf
-color = 'tab:blue'
-ax2.set_ylabel('Srážky (mm)', color=color)
-ax2.bar(x_values, y_values_prec, color=color, alpha=0.5) # sloupcový graf pro srážky
-ax2.tick_params(axis='y', labelcolor=color)
 
-# Nastavení osy x
-plt.xticks(x_values)
 
-# Zobrazení grafu
-plt.title('Teploty a srážky v průběhu dne')
-plt.show()
 
 
 
