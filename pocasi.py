@@ -89,7 +89,7 @@ def get_sums_prec(precipitation):
     return(sum_prec)
 
 
-def get_datum(url_prec):
+def get_day(url_prec):
     response = get(url_prec)
     soup =  BeautifulSoup(response.text, features="html.parser")
     rows = soup.find_all('th')
@@ -224,10 +224,11 @@ def get_result():
     get_temperature(url_teplota)
     temperatures = get_temperature(url_teplota)
     temp_hrs = get_temp_hr(temperatures)
+    
     get_prec(url_prec)
     precipitation = get_prec(url_prec)
     sum_prec = get_sums_prec(precipitation)
-    day = get_datum(url_prec)
+    day = get_day(url_prec)
     
     try:
         update_pocasi_csv(day, temp_hrs, sum_prec)
