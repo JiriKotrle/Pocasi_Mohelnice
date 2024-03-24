@@ -6,19 +6,25 @@ import os
 from matplotlib import pyplot as plt
 from matplotlib.widgets import Slider  # Import Slider
 
-
+# plt.ion()
 os.system('cls')
 
 def get_url_temp():
     aktualni_datum = datetime.now()
-    vcerejsi_datum = aktualni_datum - timedelta(days=1)
-    datum = vcerejsi_datum.strftime('%Y-%m-%d')
+    urls_temp = []
 
-    url1 = "http://portal.envitech.eu:81/ovzdusi-lostice/station/1/emission/7?from="
-    url2 = "&interval=day&displayCharts=true&displayTables=true&updateControls="
+    for i in range(1,8):
+        zpetne_datum = aktualni_datum - timedelta(days=i)
+        datum = zpetne_datum.strftime('%Y-%m-%d')
 
-    url_teplota = url1 + datum + url2
-    return url_teplota
+        url1 = "http://portal.envitech.eu:81/ovzdusi-lostice/station/1/emission/7?from="
+        url2 = "&interval=day&displayCharts=true&displayTables=true&updateControls="
+
+        url_teplota = url1 + datum + url2
+        urls_temp.append(url_teplota)
+    
+    return(urls_temp)
+    
 
 
 def get_temperature(url_teplota):
@@ -60,7 +66,17 @@ def get_temp_hr(temperatures):
     return(temp_hrs)
 
 
-url_prec = "https://hydro.chmi.cz/hppsoldv/hpps_act_rain.php?day_offset=1&fpob=OS&fdp=&fkraj=&ordrstr=11&startpage=2"
+def get_url_prec():
+    url1 = "https://hydro.chmi.cz/hppsoldv/hpps_act_rain.php?day_offset="
+    url2 = "&fpob=OS&fdp=&fkraj=&ordrstr=11&startpage=2"
+    urls_prec = []
+
+    for i in range(1,8):
+        url_prec = url1 + str(i) + url2
+        urls_prec.append(url_prec)
+
+    return(urls_prec)
+
 
 def get_prec(url_prec):
     response = get(url_prec)
@@ -125,8 +141,9 @@ def update_pocasi_csv(day, temp_hrs, sum_prec):
     df = pd.read_csv("pocasi.csv", sep='\t', encoding='cp1250',decimal=',')
 
     # poslední datum v .csv
-    last_date = df['datum'].iloc[-1]
-    if last_date in day:
+    days_in_csv = df['datum'].tolist()
+    
+    if day[0] in days_in_csv:
         return
 
     else: 
@@ -146,16 +163,15 @@ def plot_chart():
     # získání teplot z celého csv:
     y_values_temp = []
     # projede řádky
-    for i in range(len(df)):
+    for i in reversed(range(len(df))):
         # projede sloupce:
         for ii in range(6):
             temp = df.iloc[i,ii+1]
             y_values_temp.append(temp)
-    print(y_values_temp)
 
     # získání srážek z celého csv:
     y_values_prec = []
-    for i in range(len(df)):
+    for i in reversed(range(len(df))):
         # projede sloupce:
         for ii in range(6,12):
             prec = df.iloc[i,ii+1]
@@ -166,7 +182,7 @@ def plot_chart():
     list_datums = df['datum'].tolist()
     x_values = []
     index = 1
-    for i in list_datums:
+    for i in reversed(list_datums):
         for ii in columns_name:
             x_value = "_".join([i,ii, f'({str(index)})'])
             x_values.append(x_value)
@@ -220,20 +236,27 @@ def plot_chart():
     plt.show()
 
 def get_result():
-    url_teplota = get_url_temp()
-    get_temperature(url_teplota)
-    temperatures = get_temperature(url_teplota)
-    temp_hrs = get_temp_hr(temperatures)
+    print("Processing...")
+    urls_temp = get_url_temp()
+    urls_prec = get_url_prec()
+
+    for x in range(1,8):
+        url_temp = urls_temp[x-1]
+        url_prec = urls_prec[x-1]
     
-    get_prec(url_prec)
-    precipitation = get_prec(url_prec)
-    sum_prec = get_sums_prec(precipitation)
-    day = get_day(url_prec)
+        get_temperature(url_temp)
+        temperatures = get_temperature(url_temp)
+        temp_hrs = get_temp_hr(temperatures)
     
-    try:
-        update_pocasi_csv(day, temp_hrs, sum_prec)
-    except FileNotFoundError:
-        create_pocasi_csv(day, temp_hrs, sum_prec)
+        get_prec(url_prec)
+        precipitation = get_prec(url_prec)
+        sum_prec = get_sums_prec(precipitation)
+        day = get_day(url_prec)
+    
+        try:
+            update_pocasi_csv(day, temp_hrs, sum_prec)
+        except FileNotFoundError:
+            create_pocasi_csv(day, temp_hrs, sum_prec)
     plot_chart()
 
 
@@ -241,5 +264,4 @@ get_result()
 
 
 # auto spuštění
-# natáhnutí dat ode dne posledního spuštění ke dni aktuálního spuštění (např. když se týden nespustí tak si dotáhne chybějící data)
-# spojit do jedné funkce get_url, kde se pro každé z url vytvoří seznam s hodnotami 7 dní zpět. poté for fce která seznami projde a předá konkrétní url pro získání srážek a teploty
+# zjistit jak se bude chovat při dalším spuštění (připíše nové datum na začátek csv?, ponechá tam staré dny a nesmaže je?)
