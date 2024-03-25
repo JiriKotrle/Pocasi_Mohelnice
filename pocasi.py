@@ -151,7 +151,7 @@ def update_pocasi_csv(day, temp_hrs, sum_prec):
         print(new_df)
 
         # Spojení původního DataFrame a nového DataFrame
-        df = pd.concat([df, new_df], ignore_index=True)
+        df = pd.concat([new_df, df], ignore_index=True)
 
         # Uložení aktualizovaného DataFrame zpět do souboru CSV
         df.to_csv("pocasi.csv", index=False, sep='\t', encoding='cp1250', decimal=',')
@@ -218,7 +218,7 @@ def plot_chart():
     # Vytvoření slideru
     axcolor = 'lightgoldenrodyellow'
     ax_slider = plt.axes([0.2, 0.0, 0.65, 0.03], facecolor=axcolor)
-    slider = Slider(ax_slider, 'Index', 10, len(x_values), valinit=1)
+    slider = Slider(ax_slider, 'Index', 50, len(x_values), valinit=1)
 
     def update(val):
         index = int(slider.val)
