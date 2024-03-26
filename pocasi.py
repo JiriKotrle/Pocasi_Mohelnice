@@ -257,7 +257,7 @@ def get_result():
             update_pocasi_csv(day, temp_hrs, sum_prec)
         except FileNotFoundError:
             create_pocasi_csv(day, temp_hrs, sum_prec)
-    plot_chart()
+    # plot_chart()
 
 
 get_result()
