@@ -240,7 +240,7 @@ def get_result():
     urls_temp = get_url_temp()
     urls_prec = get_url_prec()
 
-    for x in range(1,8):
+    for x in reversed(range(1,8)): # jde od nejstarších záznamů k novým. pokud nebude reversed, tak do csv uloží včerejší den, nad něj předvčerejší atd. (prostě řadí dny špatně)
         url_temp = urls_temp[x-1]
         url_prec = urls_prec[x-1]
     
@@ -257,7 +257,7 @@ def get_result():
             update_pocasi_csv(day, temp_hrs, sum_prec)
         except FileNotFoundError:
             create_pocasi_csv(day, temp_hrs, sum_prec)
-    # plot_chart()
+    plot_chart()
 
 
 get_result()
