@@ -93,6 +93,7 @@ def get_prec(url_prec):
     precipitation = [float(x) for x in precipitation_str]
     return precipitation
 
+# Suma srážek v jednotlivých časových intervalech
 def get_sums_prec(precipitation):
     i = 0
     time_int = [4,8,12,16,20,24]
@@ -103,6 +104,15 @@ def get_sums_prec(precipitation):
         sum_prec.append(suma)
         i = i + 4
     return(sum_prec)
+
+# Suma srážek za celý den
+def get_daily_sum_prec():
+    df = pd.read_csv('pocasi.csv', sep='\t', encoding='cp1250',decimal=',')
+
+    daily_sum_prec = df[['prec_4 hrs', 'prec_8 hrs', 'prec_12 hrs', 'prec_16 hrs', 'prec_20 hrs', 'prec_24 hrs']].sum(axis=1)
+# Výpis několika řádků DataFrame pro kontrolu
+    print(daily_sum_prec)
+
 
 
 def get_day(url_prec):
@@ -127,9 +137,7 @@ def create_pocasi_csv(day, temp_hrs, sum_prec):
     
     all_data =[day + temp_hrs + sum_prec]
     
-    print(all_data)
     df = pd.DataFrame(all_data, columns = columns)
-    print(df)
     df.to_csv("pocasi.csv", index=False, encoding='cp1250', sep='\t', decimal=",")
 
 
@@ -215,15 +223,19 @@ def plot_chart():
     # Název grafu
     plt.title('Graf teplot a srážek')
 
+    # Vertikální čára na ose x
+    for i in range(5, len(x_values), 6):
+        plt.axvline(x=i, color='g', linestyle='--')  
+
     # Vytvoření slideru
     axcolor = 'lightgoldenrodyellow'
     ax_slider = plt.axes([0.2, 0.0, 0.65, 0.03], facecolor=axcolor)
-    slider = Slider(ax_slider, 'Index', 50, len(x_values), valinit=1)
+    slider = Slider(ax_slider, 'Index', 1, len(x_values), valinit=1)
 
     def update(val):
         index = int(slider.val)
-        ax.set_xlim(index - 10, index + 10)  # Updatuje rozsah zobrazených hodnot
-        ax2.set_xlim(index - 10, index + 10)
+        ax.set_xlim(index - 1, index + 10)  # Updatuje rozsah zobrazených hodnot
+        ax2.set_xlim(index - 1, index + 10)
         fig.canvas.draw_idle()  # Překreslí graf po změně
 
     slider.on_changed(update)
@@ -252,6 +264,7 @@ def get_result():
         precipitation = get_prec(url_prec)
         sum_prec = get_sums_prec(precipitation)
         day = get_day(url_prec)
+        #get_daily_sum_prec()
     
         try:
             update_pocasi_csv(day, temp_hrs, sum_prec)
@@ -263,5 +276,5 @@ def get_result():
 get_result()
 
 
-# auto spuštění
-# zjistit jak se bude chovat při dalším spuštění (připíše nové datum na začátek csv?, ponechá tam staré dny a nesmaže je?)
+
+# tisknout další graf kde bude teplota průměr za den a srážky součet za den. 
