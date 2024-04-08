@@ -105,15 +105,6 @@ def get_sums_prec(precipitation):
         i = i + 4
     return(sum_prec)
 
-# Suma srážek za celý den
-def get_daily_sum_prec():
-    df = pd.read_csv('pocasi.csv', sep='\t', encoding='cp1250',decimal=',')
-
-    daily_sum_prec = df[['prec_4 hrs', 'prec_8 hrs', 'prec_12 hrs', 'prec_16 hrs', 'prec_20 hrs', 'prec_24 hrs']].sum(axis=1)
-# Výpis několika řádků DataFrame pro kontrolu
-    print(daily_sum_prec)
-
-
 
 def get_day(url_prec):
     response = get(url_prec)
@@ -247,6 +238,28 @@ def plot_chart():
     # Zobrazení grafu
     plt.show()
 
+
+# Suma srážek za celý den
+def get_daily_sum_prec():
+    df = pd.read_csv('pocasi.csv', sep='\t', encoding='cp1250',decimal='.')
+
+    daily_sum_prec = round(df[['prec_4 hrs', 'prec_8 hrs', 'prec_12 hrs', 'prec_16 hrs', 'prec_20 hrs', 'prec_24 hrs']].sum(axis=1),2)
+     # Vytvoření nového sloupce 'daily_prec' a jeho naplnění součty 'daily_sum_prec'
+    print(daily_sum_prec)
+    df['daily_prec'] = daily_sum_prec
+    # Uložení DataFrame zpět do CSV souboru
+    df.to_csv('pocasi.csv', sep='\t', encoding='cp1250', index=False)
+
+
+def get_daily_avg_temp():
+    df = pd.read_csv('pocasi.csv', sep='\t', encoding='cp1250',decimal='.')
+    daily_avg_temp = round(df[['temp_4 hrs', 'temp_8 hrs', 'temp_12 hrs', 'temp_16 hrs', 'temp_20 hrs', 'temp_24 hrs']].mean(axis=1),2)
+    # Vytvoření nového sloupce 'daily_avg_temp' a jeho naplnění průměrem
+    df['daily_avg_temp'] = daily_avg_temp
+    # Uložení DataFrame zpět do CSV souboru
+    df.to_csv('pocasi.csv', sep='\t', encoding='cp1250', index=False)
+
+
 def get_result():
     print("Processing...")
     urls_temp = get_url_temp()
@@ -264,13 +277,15 @@ def get_result():
         precipitation = get_prec(url_prec)
         sum_prec = get_sums_prec(precipitation)
         day = get_day(url_prec)
-        #get_daily_sum_prec()
     
         try:
             update_pocasi_csv(day, temp_hrs, sum_prec)
         except FileNotFoundError:
             create_pocasi_csv(day, temp_hrs, sum_prec)
-    plot_chart()
+
+    get_daily_sum_prec()
+    get_daily_avg_temp()
+    #plot_chart()
 
 
 get_result()
